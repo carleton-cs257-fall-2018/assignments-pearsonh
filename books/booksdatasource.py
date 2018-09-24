@@ -6,6 +6,8 @@
     For use in some assignments at the beginning of Carleton's
     CS 257 Software Design class, Fall 2018.
 '''
+import csv
+
 
 class BooksDataSource:
     '''
@@ -44,7 +46,12 @@ class BooksDataSource:
         {'id': 193, 'title': 'A Wild Sheep Chase', 'publication_year': 1982}
 
     '''
-
+    
+    books_list = []
+    authors_list = []
+    author_key_dict = {}
+    book_key_dict = {}
+    
     def __init__(self, books_filename, authors_filename, books_authors_link_filename):
         ''' Initializes this data source from the three specified  CSV files, whose
             CSV fields are:
@@ -73,11 +80,34 @@ class BooksDataSource:
             NOTE TO STUDENTS: I have not specified how you will store the books/authors
             data in a BooksDataSource object. That will be up to you, in Phase 3.
         '''
-        pass
+        
+        with open(books_filename, newline='') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                self.books_list.append({'id': int(row[0]), 'title': row[1], 'publication_year': int(row[2])})
+                
+        with open(authors_filename, newline='') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                self.authors_list.append({'id':  int(row[0]), 'last-name': row[1], 'first-name':row[2], 
+                'birth-year': int(row[3]), 'death-year':(None if row[4]=='NULL' else int(row[4]))})
+            
+        with open(books_authors_link_filename, newline='') as f:
+            reader = csv.reader(f)
+            for row in reader:   
+                if int(row[1]) in self.author_key_dict:
+                    #print(author_key_dict[int(row[1])])
+                    self.author_key_dict[int(row[1])].append(int(row[0]))
+                    #print(author_key_dict[int(row[1])])
+                    
+                else:
+                    self.author_key_dict[int(row[1])] = [int(row[0])] 
+                
 
     def book(self, book_id):
         ''' Returns the book with the specified ID. (See the BooksDataSource comment
             for a description of how a book is represented.) '''
+            #for book in books
         return {}
 
     def books(self, *, author_id=None, search_text=None, start_year=None, end_year=None, sort_by='title'):
@@ -153,3 +183,6 @@ class BooksDataSource:
             See the BooksDataSource comment for a description of how an author is represented. '''
         return self.books(book_id=book_id)
 
+bookdatasource = BooksDataSource('books.csv', 'authors.csv', 'books_authors.csv')
+
+print(bookdatasource.author_key_dict[0])
