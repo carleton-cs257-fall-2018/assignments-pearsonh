@@ -46,9 +46,7 @@ class BooksDataSourceTest (unittest.TestCase):
             
     def test_books_allBooks(self):
         self.assertEqual(self.books_data_source.books(),
-            [self.books_data_source.book(x) for x in range(48)])
-            
-            
+            sorted([self.books_data_source.book(x) for x in range(47)], key=lambda x: x['title']))
             
     def test_author(self):
       self.assertEqual(self.books_data_source.author(10), 
@@ -76,12 +74,12 @@ class BooksDataSourceTest (unittest.TestCase):
         
     def test_authors_end_year(self):
         self.assertEqual(self.books_data_source.authors(end_year=1812),
-            [self.books_data_source.book(4), self.books_data_source.book(23)])
+            [self.books_data_source.author(4), self.books_data_source.author(23)])
             
             
     def test_authors_allAuthors(self):
         self.assertEqual(self.books_data_source.authors(),
-            [self.books_data_source.author(x) for x in range(25)])
+            sorted([self.books_data_source.author(x) for x in range(25)], key=lambda x: (x['birth_year'], x['last_name'], x['first_name'])))
             
          
          

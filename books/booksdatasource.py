@@ -47,10 +47,7 @@ class BooksDataSource:
 
     '''
     
-    books_list = []
-    authors_list = []
-    author_key_dict = {}
-    book_key_dict = {}
+    
     
     def __init__(self, books_filename, authors_filename, books_authors_link_filename):
         ''' Initializes this data source from the three specified  CSV files, whose
@@ -80,6 +77,10 @@ class BooksDataSource:
             NOTE TO STUDENTS: I have not specified how you will store the books/authors
             data in a BooksDataSource object. That will be up to you, in Phase 3.
         '''
+        self.books_list = []
+        self.authors_list = []
+        self.author_key_dict = {}
+        self.book_key_dict = {}
         
         with open(books_filename, newline='') as f:
             reader = csv.reader(f)
@@ -89,26 +90,28 @@ class BooksDataSource:
         with open(authors_filename, newline='') as f:
             reader = csv.reader(f)
             for row in reader:
-                self.authors_list.append({'id':  int(row[0]), 'last-name': row[1], 'first-name':row[2], 
-                'birth-year': int(row[3]), 'death-year':(None if row[4]=='NULL' else int(row[4]))})
+                self.authors_list.append({'id':  int(row[0]), 'last_name': row[1], 'first_name':row[2], 
+                'birth_year': int(row[3]), 'death_year':(None if row[4]=='NULL' else int(row[4]))})
             
         with open(books_authors_link_filename, newline='') as f:
             reader = csv.reader(f)
             for row in reader:   
                 if int(row[1]) in self.author_key_dict:
-                    #print(author_key_dict[int(row[1])])
                     self.author_key_dict[int(row[1])].append(int(row[0]))
-                    #print(author_key_dict[int(row[1])])
-                    
                 else:
-                    self.author_key_dict[int(row[1])] = [int(row[0])] 
+                    self.author_key_dict[int(row[1])] = [int(row[0])]
+                
+                if int(row[0]) in self.book_key_dict:
+                    self.book_key_dict[int(row[0])].append(int(row[1]))
+                else:
+                    self.book_key_dict[int(row[0])] = [int(row[1])]
                 
 
     def book(self, book_id):
         ''' Returns the book with the specified ID. (See the BooksDataSource comment
             for a description of how a book is represented.) '''
             #for book in books
-        return {}
+        return self.books_list[book_id]
 
     def books(self, *, author_id=None, search_text=None, start_year=None, end_year=None, sort_by='title'):
         ''' Returns a list of all the books in this data source matching all of
@@ -130,12 +133,27 @@ class BooksDataSource:
                 
             See the BooksDataSource comment for a description of how a book is represented.
         '''
-        return []
+        filter_list = []
+        for book in self.books_list:
+            if author_id == None or author_id in self.book_key_dict[book['id']]:
+                if search_text == None or search_text.lower() in book['title'].lower():
+                    if start_year == None or book['publication_year'] >= start_year:
+                        if end_year == None or book['publication_year'] <= end_year:
+                            filter_list.append(book)
+       
+        def sort_func(book):
+            if sort_by=='title':
+                return  (book['title'].lower(), book['publication_year'])
+            else:
+                return (book['publication_year'], book['title'].lower())              
+        
+        filter_list.sort(key=sort_func)
+        return filter_list
 
     def author(self, author_id):
         ''' Returns the author with the specified ID. (See the BooksDataSource comment for a
             description of how an author is represented.) '''
-        return {}
+        return self.authors_list[author_id]
 
     def authors(self, *, book_id=None, search_text=None, start_year=None, end_year=None, sort_by='birth_year'):
         ''' Returns a list of all the authors in this data source matching all of the
@@ -162,6 +180,23 @@ class BooksDataSource:
         
             See the BooksDataSource comment for a description of how an author is represented.
         '''
+        filter_list = []
+        for author in self.authors_list:
+            if book_id == None or book_id in self.author_key_dict[author['id']]:
+                if search_text == None or search_text.lower() in author['first_name'] + ' ' + author['last_name'].lower():
+                    if start_year == None or (author['death_year'] != None and author['death_year'] >= start_year):
+                        if end_year == None or author['birth_year'] <= end_year:
+                            filter_list.append(author)
+       
+        def sort_func(book):
+            if sort_by=='birth_year':
+                return  (book['birth_year'], book['last_name'].lower(), book['first_name'].lower())
+            else:
+                return (book['last_name'].lower(), book['first_name'].lower(), book['birth_year'])         
+        
+        filter_list.sort(key=sort_func)
+        return filter_list
+        
         return []
 
 
@@ -181,8 +216,11 @@ class BooksDataSource:
     def authors_for_book(self, book_id):
         ''' Returns a list of all the authors of the book with the specified book ID.
             See the BooksDataSource comment for a description of how an author is represented. '''
-        return self.books(book_id=book_id)
+        return self.authors(book_id=book_id)
 
 bookdatasource = BooksDataSource('books.csv', 'authors.csv', 'books_authors.csv')
 
-print(bookdatasource.author_key_dict[0])
+#print(bookdatasource.books(author_id = 5))
+#print(bookdatasource.authors())
+#print(sorted([bookdatasource.book(x) for x in range(47)], key=lambda x: x['title']))
+
